@@ -59,7 +59,33 @@ class TaskStore extends ReduceStore {
   }
 
   reduce(state, action) {
-    console.log("reducing ...", state, action);
+    console.log("reducing ...", state, "action", action);
+    let newState;
+    switch (action.type) {
+      case CREATE_TASK:
+        console.log(state);
+        newState = { ...state, tasks: [...state.tasks] };
+        newState.tasks.push({
+          id: id(),
+          content: action.value,
+          showComplete: false
+        });
+        return newState;
+      case SHOW_TASKS:
+        console.log("SHOW", state);
+        newState = {
+          ...state,
+          tasks: [...state.tasks],
+          showComplete: action.value
+        };
+        return newState;
+        break;
+      case COMPLETE_TASK:
+        break;
+      default:
+        break;
+    }
+
     return state;
   }
 
@@ -86,8 +112,30 @@ const render = () => {
   taskSection.innerHTML = rendered;
 };
 
+document.forms.newTask.addEventListener("submit", e => {
+  e.preventDefault();
+  const name = e.target.newTaskName.value;
+  if (name) {
+    taskDispatcher.dispatch(createNewTaskAction(name));
+    e.target.newTaskName.value = null;
+  }
+});
+
+document
+  .getElementById("showComplete")
+  .addEventListener("change", ({ target }) => {
+    const showComplete = target.checked;
+    console.log("showComplete", target);
+
+    taskDispatcher.dispatch(showTasksAction(showComplete));
+  });
+
 const taskStore = new TaskStore(taskDispatcher);
 
 taskDispatcher.dispatch("TEST_DISPATCH");
+
+taskStore.addListener(() => {
+  render();
+});
 
 render();
